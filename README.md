@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Disaster Relief & Volunteer Management System
 
 Flask + SQLite web app implementing the core features in the SRS.
@@ -20,3 +21,6 @@ Set `SECRET_KEY` env var for any real deployment.
     app.py            routes, DB schema, role-based access
     templates/        Jinja pages    static/style.css   styling
     seed_demo.py      demo data
+=======
+# SE-project
+>>>>>>> c89d8dc4816560052dd6d26eaf8fe82fd9b37cb7
