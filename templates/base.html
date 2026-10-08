@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{% block title %}ReliefNet{% endblock %}</title>
+  <meta name="description" content="Disaster relief coordination connecting victims, volunteers, and NGOs.">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<nav>
+  <a href="{{ url_for('index') }}" class="brand">
+    <div class="brand-icon">🛟</div>
+    <div>
+      <div class="brand-text">ReliefNet</div>
+      <div class="brand-sub">Emergency Response</div>
+    </div>
+  </a>
+
+  <div class="nav-links">
+    <a href="{{ url_for('track_form') }}" class="btn btn-outline btn-sm" style="color:#cbd5e1; border-color:rgba(255,255,255,.2);">📡 Track Request</a>
+    <a href="{{ url_for('sos') }}" class="btn btn-orange btn-sm" style="color:#fff;">🚨 SOS Request</a>
+
+    {% if user %}
+      <a href="{{ url_for('dashboard') }}">Dashboard</a>
+      <div class="user-chip">
+        <span class="user-chip-av">{{ user.name[:1]|upper }}</span>
+        <span>{{ user.name }}</span>
+        <span class="role-tag">{{ user.role }}</span>
+      </div>
+      <a href="{{ url_for('logout') }}" style="color:#94a3b8;">Sign out</a>
+    {% else %}
+      <a href="{{ url_for('login') }}">Login</a>
+      <a href="{{ url_for('register') }}" class="btn btn-outline btn-sm" style="color:#fff; border-color:rgba(255,255,255,.2);">Register</a>
+    {% endif %}
+  </div>
+</nav>
+
+<main>
+  {% set msgs = get_flashed_messages(with_categories=true) %}
+  {% if msgs %}
+    <div class="flash-stack">
+      {% for cat, msg in msgs %}
+        <div class="flash {{ cat }}">
+          <span class="flash-icon">{% if cat=='ok' %}✅{% else %}⚠️{% endif %}</span>
+          {{ msg }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {% block body %}{% endblock %}
+</main>
+
+</body>
+</html>

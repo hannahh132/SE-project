@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Register — ReliefNet{% endblock %}
+
+{% block body %}
+<div class="card narrow">
+  <div style="text-align:center; margin-bottom:24px;">
+    <h2>Create Account</h2>
+    <p class="muted" style="font-size:.88rem;">For Volunteers and NGO coordinators only.<br>Victims don't need to register — <a href="{{ url_for('sos') }}" style="color:var(--danger); font-weight:600;">click here to send SOS</a>.</p>
+  </div>
+
+  <form method="post">
+    {{ csrf() }}
+
+    <label>
+      I am joining as *
+      <select name="role" id="roleSelect" required onchange="toggleFields()">
+        <option value="" disabled selected>— Select Role —</option>
+        <option value="volunteer" {% if request.args.get('role') == 'volunteer' %}selected{% endif %}>🤝 Volunteer</option>
+        <option value="ngo" {% if request.args.get('role') == 'ngo' %}selected{% endif %}>🏢 NGO Coordinator</option>
+      </select>
+    </label>
+
+    <label>Full Name / Organization Name *<input name="name" placeholder="e.g. Arun Nair or Kerala Red Cross" required autofocus></label>
+    <label>Email Address *<input type="email" name="email" placeholder="you@example.com" required></label>
+    <label>Phone Number<input type="tel" name="phone" placeholder="e.g. 9847000000"></label>
+    <label>Password * <div class="hint">Minimum 6 characters</div><input type="password" name="password" minlength="6" placeholder="••••••••" required></label>
+
+    <!-- Volunteer-only fields -->
+    <div id="vol-fields" style="display:none;">
+      <div class="alert alert-info" style="margin-bottom:14px;">
+        <span>ℹ️</span>
+        <div>Your location helps match you to the <strong>nearest victims</strong> who need assistance.</div>
+      </div>
+      <label>Your Base Location <div class="hint">District / area you operate from</div><input name="location" placeholder="e.g. Alappuzha North, District 4"></label>
+      <label>Skills <div class="hint">e.g. First Aid, Boat Driving, CPR, Multilingual</div><input name="skills" placeholder="List your emergency skills"></label>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-blk" style="margin-top:12px;">
+      Create Account &amp; Sign In
+    </button>
+  </form>
+
+  <div class="divider">or</div>
+  <p class="muted" style="text-align:center; font-size:.87rem;">
+    Already have an account? <a href="{{ url_for('login') }}" style="color:var(--primary); font-weight:600;">Sign in</a>
+  </p>
+</div>
+
+<script>
+function toggleFields() {
+  const role = document.getElementById('roleSelect').value;
+  document.getElementById('vol-fields').style.display = role === 'volunteer' ? 'block' : 'none';
+}
+// Auto-select from URL param
+window.addEventListener('DOMContentLoaded', toggleFields);
+</script>
+{% endblock %}

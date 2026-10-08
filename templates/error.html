@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Error — ReliefNet{% endblock %}
+{% block body %}
+<div class="card narrow" style="text-align:center; padding:48px 28px;">
+  <div style="font-size:2.5rem; margin-bottom:12px;">⚠️</div>
+  <h2>{{ e.code }}</h2>
+  <p class="muted" style="margin:10px 0 24px;">{{ e.description }}</p>
+  <a href="{{ url_for('index') }}" class="btn btn-primary">Back to Home</a>
+</div>
+{% endblock %}

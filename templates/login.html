@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Sign In — ReliefNet{% endblock %}
+
+{% block body %}
+<div class="card narrow">
+  <div style="text-align:center; margin-bottom:26px;">
+    <h2>Volunteer / NGO Sign In</h2>
+    <p class="muted" style="font-size:.88rem;">
+      Victim? No login needed —
+      <a href="{{ url_for('sos') }}" style="color:var(--danger); font-weight:600;">send your SOS request directly</a>.
+    </p>
+  </div>
+
+  <form method="post">
+    {{ csrf() }}
+    <label>Email Address<input type="email" name="email" placeholder="you@example.com" required autofocus></label>
+    <label>Password<input type="password" name="password" placeholder="••••••••" required></label>
+    <button type="submit" class="btn btn-primary btn-blk" style="margin-top: 10px;">Sign In</button>
+  </form>
+
+  <div class="divider">new here?</div>
+  <a href="{{ url_for('register') }}" class="btn btn-outline btn-blk">Create a Volunteer / NGO Account</a>
+</div>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Emergency SOS Request — ReliefNet{% endblock %}
+
+{% block body %}
+<div class="card wide">
+  <div style="text-align:center; margin-bottom: 28px;">
+    <div style="font-size: 2.5rem; margin-bottom: 10px;">🚨</div>
+    <h1>Emergency Help Request</h1>
+    <p class="sub">No account required. Fill in the form below — your request will be instantly visible to nearby volunteers.</p>
+  </div>
+
+  <div class="alert alert-info">
+    <span>ℹ️</span>
+    <div>After submitting, you will receive a <strong>tracking code</strong>. Save it to check your request status anytime.</div>
+  </div>
+
+  <form method="post">
+    {{ csrf() }}
+
+    <div class="form-row col-2">
+      <label>
+        Your Name *
+        <input name="victim_name" placeholder="e.g. Rahul Kumar" required autofocus>
+      </label>
+      <label>
+        Phone Number
+        <div class="hint">Optional — helps volunteer contact you</div>
+        <input name="victim_phone" placeholder="e.g. 9847012345" type="tel">
+      </label>
+    </div>
+
+    <div class="form-row col-2">
+      <label>
+        Type of Help Needed *
+        <select name="type" required>
+          <option value="">— Select —</option>
+          <option value="Rescue">🚤 Rescue (Stranded / Trapped)</option>
+          <option value="Food">🍲 Food &amp; Nutrition</option>
+          <option value="Water">💧 Clean Drinking Water</option>
+          <option value="Medical">🏥 Medical / First Aid</option>
+          <option value="Shelter">⛺ Shelter / Evacuation</option>
+        </select>
+      </label>
+      <label>
+        Number of People *
+        <input type="number" name="people" min="1" value="1" required>
+      </label>
+    </div>
+
+    <label>
+      Your Current Location *
+      <div class="hint">Be as specific as possible — street, landmark, GPS coordinates</div>
+      <input name="location" placeholder="e.g. Near St. Mary Church, Block 3, Kuttanad, Alappuzha" required>
+    </label>
+
+    <label>
+      Describe Your Situation
+      <div class="hint">Water level, injuries, elderly/children present, access difficulty…</div>
+      <textarea name="description" rows="3" placeholder="e.g. 5 people including 2 elderly stranded on roof. Water rising. Need boat."></textarea>
+    </label>
+
+    <button type="submit" class="btn sos-btn btn-blk" style="margin-top:6px; font-size:.95rem; padding: 13px;">
+      🚨 Send Emergency Request
+    </button>
+  </form>
+</div>
+{% endblock %}

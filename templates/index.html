@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}ReliefNet — Rapid Emergency Response{% endblock %}
+
+{% block body %}
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-eyebrow">
+    <span class="live-dot"></span>
+    Live Emergency Coordination Network
+  </div>
+  <h1>Rapid help when <span>every second matters</span>.</h1>
+  <p>
+    Victims can call for help instantly — no account needed.
+    Registered volunteers respond on the ground.
+    NGOs coordinate resources and operations.
+  </p>
+  <div class="hero-cta">
+    <a href="{{ url_for('sos') }}" class="btn sos-btn">
+      🚨 I Need Emergency Help Right Now
+    </a>
+    <a href="{{ url_for('login') }}" class="btn btn-outline" style="color:#fff; border-color:rgba(255,255,255,.25);">
+      Volunteer / NGO Login →
+    </a>
+  </div>
+</div>
+
+<!-- 3-Role Explainer -->
+<h2 style="margin-bottom: 6px;">How it works</h2>
+<p class="muted" style="margin-bottom: 18px;">Three groups, each with a focused role in disaster response.</p>
+
+<div class="role-grid">
+  <!-- Victim -->
+  <div class="role-card rc-victim">
+    <div class="rc-icon">🆘</div>
+    <div>
+      <div class="rc-title">Victim / Survivor</div>
+      <div class="rc-desc">
+        No registration needed. Submit an emergency request for
+        <strong>Food, Water, Rescue, Medical, or Shelter</strong>
+        from your current location. Get a tracking code to monitor your request status live.
+      </div>
+    </div>
+    <a href="{{ url_for('sos') }}" class="rc-action">Send SOS Request →</a>
+  </div>
+
+  <!-- Volunteer -->
+  <div class="role-card rc-vol">
+    <div class="rc-icon">🤝</div>
+    <div>
+      <div class="rc-title">Volunteer</div>
+      <div class="rc-desc">
+        Register once with your location and skills. See live incoming victim requests,
+        <strong>accept or decline</strong> based on your availability, then update status as you help.
+      </div>
+    </div>
+    <a href="{{ url_for('register') }}?role=volunteer" class="rc-action">Join as Volunteer →</a>
+  </div>
+
+  <!-- NGO -->
+  <div class="role-card rc-ngo">
+    <div class="rc-icon">🏢</div>
+    <div>
+      <div class="rc-title">NGO Coordinator</div>
+      <div class="rc-desc">
+        Full access: view all requests, manage volunteer assignments, track resource inventory, and override request statuses across the entire network.
+      </div>
+    </div>
+    <a href="{{ url_for('register') }}?role=ngo" class="rc-action">Join as NGO →</a>
+  </div>
+</div>
+
+<!-- Live Stats -->
+<div class="grid g3">
+  <div class="stat-card">
+    <div class="stat-label">🔴 Open Requests</div>
+    <div class="stat-val red">{{ stats.pending }}</div>
+    <p class="muted" style="font-size:.8rem; margin-top:4px;">Awaiting a volunteer</p>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">✅ Completed Today</div>
+    <div class="stat-val green">{{ stats.done }}</div>
+    <p class="muted" style="font-size:.8rem; margin-top:4px;">Successfully rescued / aided</p>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">🤝 Active Volunteers</div>
+    <div class="stat-val blue">{{ stats.vols }}</div>
+    <p class="muted" style="font-size:.8rem; margin-top:4px;">Registered responders</p>
+  </div>
+</div>
+{% endblock %}

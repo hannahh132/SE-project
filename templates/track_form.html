@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Track Request — ReliefNet{% endblock %}
+
+{% block body %}
+<div class="card narrow">
+  <div style="text-align:center; margin-bottom: 28px;">
+    <div style="font-size: 2.5rem; margin-bottom: 10px;">📡</div>
+    <h1>Track Your Request</h1>
+    <p class="sub">Enter your 10-character tracking code to view the live status of your emergency request.</p>
+  </div>
+
+  <form method="post">
+    {{ csrf() }}
+    <label>
+      Tracking Code
+      <input type="text" name="code" placeholder="e.g. 239C23BF9C" required autofocus style="text-transform: uppercase; letter-spacing: 2px; font-family: monospace; font-size: 1.1rem; text-align: center;">
+    </label>
+
+    <button type="submit" class="btn btn-primary btn-blk" style="margin-top:12px; font-size:.95rem; padding: 13px;">
+      Track Status
+    </button>
+  </form>
+  
+  <div style="text-align:center; margin-top: 24px;">
+    <a href="{{ url_for('sos') }}" style="color:var(--muted); font-size:.85rem; text-decoration: underline;">Need to submit a new SOS request instead?</a>
+  </div>
+</div>
+{% endblock %}

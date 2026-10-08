@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% block title %}NGO Dashboard — ReliefNet{% endblock %}
+
+{% block body %}
+<div class="card-header" style="margin-bottom: 20px;">
+  <div>
+    <h1>NGO Operations Dashboard</h1>
+    <p class="sub">Full network visibility · Manage requests, volunteers, and resources</p>
+  </div>
+</div>
+
+<!-- Stats overview -->
+<div class="grid g4" style="margin-bottom: 26px;">
+  <div class="stat-card">
+    <div class="stat-label">📡 Total Requests</div>
+    <div class="stat-val">{{ stats.total }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">🔴 Pending</div>
+    <div class="stat-val red">{{ stats.pending }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">⚡ Active</div>
+    <div class="stat-val blue">{{ stats.active }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">✅ Completed</div>
+    <div class="stat-val green">{{ stats.completed }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">🤝 Volunteers</div>
+    <div class="stat-val">{{ stats.volunteers }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">🟢 Available Now</div>
+    <div class="stat-val" style="color:var(--success);">{{ stats.available }}</div>
+  </div>
+</div>
+
+<!-- All Requests Table -->
+<div class="card-header" style="margin-bottom:12px;">
+  <h2 style="margin:0;">📋 All Distress Requests</h2>
+</div>
+<div class="scroll">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Type</th>
+        <th>Victim</th>
+        <th>Location</th>
+        <th>People</th>
+        <th>Status</th>
+        <th>Volunteer</th>
+        <th>Submitted</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in all_reqs %}
+      <tr>
+        <td><strong>#{{ r.id }}</strong></td>
+        <td><span class="badge badge-{{ r.type|lower }}">{{ r.type }}</span></td>
+        <td>
+          <strong>{{ r.victim_name }}</strong>
+          {% if r.victim_phone %}<br><small style="color:var(--muted);">📞 {{ r.victim_phone }}</small>{% endif %}
+        </td>
+        <td>{{ r.location }}</td>
+        <td>{{ r.people }}</td>
+        <td><span class="badge badge-{{ r.status|lower|replace(' ','') }}">{{ r.status }}</span></td>
+        <td>
+          {% if r.vol_name %}
+            <span style="color:var(--primary); font-weight:600;">{{ r.vol_name }}</span>
+          {% else %}
+            <span class="muted">Unassigned</span>
+          {% endif %}
+        </td>
+        <td style="font-size:.78rem; color:var(--muted);">{{ r.created[:16] }}</td>
+        <td>
+          <div style="display:flex; gap:5px; flex-wrap:wrap;">
+            <!-- Set status -->
+            <form method="post" action="{{ url_for('ngo_set_status', rid=r.id) }}" style="display:flex; gap:4px;">
+              {{ csrf() }}
+              <select name="status" style="font-size:.75rem; padding:3px 6px; width:auto;">
+                {% for st in ['Pending','Accepted','In Progress','Completed','Rejected'] %}
+                  <option value="{{ st }}" {% if st == r.status %}selected{% endif %}>{{ st }}</option>
+                {% endfor %}
+              </select>
+              <button type="submit" class="btn btn-primary btn-xs">Set</button>
+            </form>
+            <!-- Assign volunteer -->
+            {% if r.status in ('Pending', 'Accepted') %}
+              <form method="post" action="{{ url_for('ngo_assign', rid=r.id) }}" style="display:flex; gap:4px;">
+                {{ csrf() }}
+                <select name="volunteer_id" style="font-size:.75rem; padding:3px 6px; width:auto;">
+                  <option value="">Assign…</option>
+                  {% for v in volunteers %}
+                    <option value="{{ v.id }}" {% if v.id == r.volunteer_id %}selected{% endif %}>
+                      {{ v.name }} ({{ '✅' if v.available else '🔴' }})
+                    </option>
+                  {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-success btn-xs">Go</button>
+              </form>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="9" style="text-align:center; padding:28px; color:var(--muted);">No requests yet.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Volunteers Table -->
+<div class="card-header" style="margin:28px 0 12px;">
+  <h2 style="margin:0;">👥 Registered Volunteers</h2>
+</div>
+<div class="scroll">
+  <table>
+    <thead>
+      <tr><th>Name</th><th>Email</th><th>Phone</th><th>Location</th><th>Skills</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      {% for v in volunteers %}
+      <tr>
+        <td><strong>{{ v.name }}</strong></td>
+        <td>{{ v.email }}</td>
+        <td>{{ v.phone or '—' }}</td>
+        <td>{{ v.location or '—' }}</td>
+        <td style="font-size:.82rem; color:var(--muted);">{{ v.skills or '—' }}</td>
+        <td>
+          {% if v.available %}
+            <span class="badge badge-completed">🟢 Available</span>
+          {% else %}
+            <span class="badge badge-rejected">🔴 Busy</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="muted" style="text-align:center; padding:20px;">No volunteers registered yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Resources Management -->
+<div class="card-header" style="margin:28px 0 12px;">
+  <h2 style="margin:0;">📦 Relief Resources</h2>
+</div>
+
+<div class="grid g2-fixed" style="gap:20px; margin-bottom:20px;">
+  <!-- Resource list -->
+  <div class="card" style="margin:0;">
+    <h3>Current Inventory</h3>
+    {% if resources %}
+      {% for res in resources %}
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border);">
+        <div>
+          <strong>{{ res.name }}</strong>
+          <span class="muted" style="font-size:.8rem; margin-left:8px;">{{ res.category }}</span><br>
+          <small class="muted">{{ res.location or 'Warehouse' }}</small>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-size:1.2rem; font-weight:800; {% if res.quantity < 20 %}color:var(--danger);{% else %}color:var(--success);{% endif %}">
+            {{ res.quantity }} <small style="font-size:.7rem; font-weight:500;">{{ res.unit }}</small>
+          </span>
+          <form method="post" action="{{ url_for('ngo_restock', rid=res.id) }}" style="display:flex; gap:4px;">
+            {{ csrf() }}
+            <input type="number" name="qty" min="1" placeholder="+qty" style="width:60px; padding:4px 6px; font-size:.8rem;">
+            <button type="submit" class="btn btn-success btn-xs">Add</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p class="muted" style="text-align:center; padding:20px 0;">No resources added yet.</p>
+    {% endif %}
+  </div>
+
+  <!-- Add new resource -->
+  <div class="card" style="margin:0;">
+    <h3>+ Add New Resource</h3>
+    <form method="post" action="{{ url_for('ngo_add_resource') }}">
+      {{ csrf() }}
+      <label>Item Name<input name="name" placeholder="e.g. Rice bags" required></label>
+      <div class="form-row col-2">
+        <label>Category
+          <select name="category">
+            <option>Food</option><option>Water</option><option>Medical</option>
+            <option>Shelter</option><option>Clothing</option><option>Rescue Equipment</option>
+          </select>
+        </label>
+        <label>Quantity<input type="number" name="quantity" min="1" placeholder="100" required></label>
+      </div>
+      <div class="form-row col-2">
+        <label>Unit<input name="unit" value="units" placeholder="kg / litres / kits"></label>
+        <label>Location<input name="location" placeholder="Warehouse A"></label>
+      </div>
+      <button type="submit" class="btn btn-primary btn-blk" style="margin-top:8px;">Add to Inventory</button>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% block title %}Volunteer Dashboard — ReliefNet{% endblock %}
+
+{% block body %}
+<!-- Header -->
+<div class="card-header" style="margin-bottom: 20px; align-items: flex-start;">
+  <div>
+    <h1>Volunteer Dashboard</h1>
+    <p class="sub">Welcome back, <strong>{{ user.name }}</strong> · {{ user.location or 'Location not set' }}</p>
+  </div>
+  <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+    <form method="post" action="{{ url_for('toggle_availability') }}">
+      {{ csrf() }}
+      <button type="submit" class="btn btn-sm {% if user.available %}avail-on{% else %}avail-off{% endif %}">
+        {% if user.available %}🟢 Available{% else %}⚪ Off Duty{% endif %}
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="grid g3" style="margin-bottom:24px;">
+  <div class="stat-card">
+    <div class="stat-label">🔴 Open Requests</div>
+    <div class="stat-val red" id="pending-count">{{ stats.pending }}</div>
+    <p class="muted" style="font-size:.78rem; margin-top:3px;">Waiting for a volunteer</p>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">⚡ My Active Missions</div>
+    <div class="stat-val blue">{{ stats.mine }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">✅ Missions Completed</div>
+    <div class="stat-val green">{{ stats.done }}</div>
+  </div>
+</div>
+
+<!-- Open / Pending Requests from Victims -->
+<div class="card-header" style="margin-bottom:10px;">
+  <h2 style="margin:0;">
+    🔴 Live Victim Requests
+    {% if stats.pending > 0 %}
+      <span class="notif-badge" id="notif-count">{{ stats.pending }}</span>
+    {% endif %}
+  </h2>
+  <p class="muted" style="font-size:.82rem; margin:0;" id="last-refresh">Auto-refreshes every 30s</p>
+</div>
+
+{% if not user.available %}
+  <div class="alert alert-warning" style="margin-bottom:16px;">
+    <span>⚠️</span>
+    <div>You are currently <strong>Off Duty</strong>. Switch to <em>Available</em> above to accept new requests.</div>
+  </div>
+{% endif %}
+
+<div class="scroll" id="open-requests-table">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Type</th>
+        <th>Victim</th>
+        <th>Location</th>
+        <th>People</th>
+        <th>Situation</th>
+        <th>Since</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in open_reqs %}
+        {% if r.status == 'Pending' %}
+        <tr>
+          <td><strong>#{{ r.id }}</strong></td>
+          <td><span class="badge badge-{{ r.type|lower }}">{{ r.type }}</span></td>
+          <td>
+            <strong>{{ r.victim_name }}</strong>
+            {% if r.victim_phone %}<br><small style="color:var(--muted);">📞 {{ r.victim_phone }}</small>{% endif %}
+          </td>
+          <td><strong>{{ r.location }}</strong></td>
+          <td>{{ r.people }}</td>
+          <td style="max-width:200px; font-size:.83rem; color:var(--muted);">{{ r.description or '—' }}</td>
+          <td style="font-size:.78rem; color:var(--muted);">{{ r.created[:16] }}</td>
+          <td>
+            {% if user.available %}
+              <form method="post" action="{{ url_for('accept_request', rid=r.id) }}" style="display:inline;">
+                {{ csrf() }}
+                <button type="submit" class="btn btn-success btn-xs">✅ Accept</button>
+              </form>
+            {% else %}
+              <span class="muted" style="font-size:.8rem;">Set yourself Available first</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endif %}
+      {% else %}
+        <tr>
+          <td colspan="8" style="text-align:center; padding:32px; color:var(--muted);">
+            🎉 No open requests right now. All caught up!
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- My Active Tasks -->
+{% if my_tasks %}
+<h2 style="margin-top:28px;">⚡ My Active Missions</h2>
+<div class="scroll">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Type</th>
+        <th>Victim</th>
+        <th>Location</th>
+        <th>Contact</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in my_tasks %}
+      <tr>
+        <td><strong>#{{ r.id }}</strong></td>
+        <td><span class="badge badge-{{ r.type|lower }}">{{ r.type }}</span></td>
+        <td><strong>{{ r.victim_name }}</strong></td>
+        <td>{{ r.location }}</td>
+        <td style="font-size:.83rem;">{{ r.victim_phone or '—' }}</td>
+        <td><span class="badge badge-{{ r.status|lower|replace(' ','') }}">{{ r.status }}</span></td>
+        <td>
+          {% if r.status != 'Completed' %}
+            <form method="post" action="{{ url_for('progress_request', rid=r.id) }}" style="display:inline;">
+              {{ csrf() }}
+              {% if r.status == 'Accepted' %}
+                <button type="submit" class="btn btn-primary btn-xs">▶ Start</button>
+              {% elif r.status == 'In Progress' %}
+                <button type="submit" class="btn btn-success btn-xs">✅ Complete</button>
+              {% endif %}
+            </form>
+            <form method="post" action="{{ url_for('reject_request', rid=r.id) }}" style="display:inline;" onsubmit="return confirm('Release this request back to the pool?')">
+              {{ csrf() }}
+              <button type="submit" class="btn btn-ghost btn-xs" style="color:var(--danger);">✖ Release</button>
+            </form>
+          {% else %}
+            <span style="color:var(--success); font-weight:700; font-size:.82rem;">✅ Done</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<!-- Auto-refresh JS -->
+<script>
+let lastPending = {{ stats.pending }};
+
+function refreshDashboard() {
+  fetch("/api/pending-count")
+    .then(r => r.json())
+    .then(data => {
+      const count = data.count;
+      document.getElementById("pending-count").textContent = count;
+      const badge = document.getElementById("notif-count");
+      if (count > 0) {
+        if (badge) badge.textContent = count;
+        // If new requests came in, reload full page to show them
+        if (count !== lastPending) {
+          lastPending = count;
+          location.reload();
+        }
+      }
+      const note = document.getElementById("last-refresh");
+      if (note) note.textContent = "Last checked: " + new Date().toLocaleTimeString();
+    })
+    .catch(() => {});
+}
+setInterval(refreshDashboard, 30000);
+</script>
+{% endblock %}

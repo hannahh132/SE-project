@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Track Request {{ req.tracking_code }} — ReliefNet{% endblock %}
+
+{% block body %}
+<div class="card track-card">
+  <div style="text-align:center; margin-bottom: 22px;">
+    <div style="font-size: 2rem; margin-bottom: 6px;">📡</div>
+    <h2>Request Status</h2>
+    <p class="muted">Tracking code: <strong style="font-family: monospace; font-size:1rem; color:#1a202c; letter-spacing:.1em;">{{ req.tracking_code }}</strong></p>
+  </div>
+
+  <!-- Progress Bar -->
+  {% set s = req.status %}
+  <div class="track-status-bar">
+    <div class="ts-step {% if s in ('Pending','Accepted','In Progress','Completed') %}done{% endif %} {% if s == 'Pending' %}active{% endif %}">
+      <span class="ts-icon">📥</span>Received
+    </div>
+    <div class="ts-step {% if s in ('Accepted','In Progress','Completed') %}done{% endif %} {% if s == 'Accepted' %}active{% endif %}">
+      <span class="ts-icon">🤝</span>Accepted
+    </div>
+    <div class="ts-step {% if s in ('In Progress','Completed') %}done{% endif %} {% if s == 'In Progress' %}active{% endif %}">
+      <span class="ts-icon">⚡</span>In Progress
+    </div>
+    <div class="ts-step {% if s == 'Completed' %}done active{% endif %} {% if s == 'Rejected' %}rejected{% endif %}">
+      <span class="ts-icon">{% if s == 'Rejected' %}✖{% else %}✅{% endif %}</span>
+      {% if s == 'Rejected' %}Rejected{% else %}Completed{% endif %}
+    </div>
+  </div>
+
+  <!-- Current status badge -->
+  <div style="text-align:center; margin: 18px 0;">
+    <span class="badge badge-{{ req.status|lower|replace(' ','') }}" style="font-size:.85rem; padding: 6px 16px;">
+      {{ req.status }}
+    </span>
+  </div>
+
+  <!-- Request details -->
+  <div style="background:#f8fafc; border-radius: 12px; padding:16px; margin-bottom: 16px;">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; font-size:.88rem;">
+      <div><span style="color:var(--muted); font-weight:600;">Type</span><br><strong>{{ req.type }}</strong></div>
+      <div><span style="color:var(--muted); font-weight:600;">People</span><br><strong>{{ req.people }}</strong></div>
+      <div style="grid-column: span 2;"><span style="color:var(--muted); font-weight:600;">Location</span><br><strong>{{ req.location }}</strong></div>
+      {% if req.description %}
+        <div style="grid-column: span 2;"><span style="color:var(--muted); font-weight:600;">Situation</span><br>{{ req.description }}</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Volunteer info (if assigned) -->
+  {% if req.vol_name %}
+    <div class="alert alert-info">
+      <span>👤</span>
+      <div>
+        <strong>{{ req.vol_name }}</strong> is handling your request.
+        {% if req.vol_phone %}<br>Contact: <a href="tel:{{ req.vol_phone }}">{{ req.vol_phone }}</a>{% endif %}
+      </div>
+    </div>
+  {% elif req.status == 'Pending' %}
+    <div class="alert alert-warning">
+      <span>⏳</span>
+      <div>Your request is live. A nearby volunteer will accept it shortly. <strong>Stay at your location if safe.</strong></div>
+    </div>
+  {% endif %}
+
+  <!-- Auto-refresh -->
+  <p class="muted" style="font-size:.78rem; text-align:center; margin-top:12px;" id="refresh-note">
+    Page auto-refreshes every 20 seconds to show status updates.
+  </p>
+
+  <div style="text-align:center; margin-top: 16px;">
+    <a href="{{ url_for('sos') }}" class="btn btn-outline btn-sm">Submit Another Request</a>
+  </div>
+</div>
+
+<script>
+  // Auto-refresh status via AJAX every 20s
+  const code = "{{ req.tracking_code }}";
+  function refreshStatus() {
+    fetch("/api/track/" + code)
+      .then(r => r.json())
+      .then(data => {
+        if (data.error) return;
+        // Full page reload if status changed (simplest reliable approach)
+        const cur = "{{ req.status }}";
+        if (data.status !== cur) {
+          location.reload();
+        }
+      })
+      .catch(() => {});
+  }
+  setInterval(refreshStatus, 20000);
+</script>
+{% endblock %}
